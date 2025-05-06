@@ -1,0 +1,54 @@
+{
+  "family": "health-clinic-app-dev",
+  "cpu": "256",
+  "memory": "512",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "executionRoleArn": "arn:aws:iam::890236016686:role/ecs-taskexecutionrole-health-clinic",
+  "taskRoleArn": "arn:aws:iam::890236016686:role/ecs-taskrole-health-clinic",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "890236016686.dkr.ecr.us-east-1.amazonaws.com/health-clinic-app:latest",
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "development" },
+        { "name": "APP_PORT", "value": "3000" },
+        { "name": "SUPABASE_URL", "value": "http://localhost:54321" },
+        { "name": "SUPABASE_ANON_KEY", "value": "dummykey" },
+        { "name": "SECRET_KEY", "value": "your_secret_key" },
+        { "name": "EMAIL_HOST", "value": "smtp.example.com" },
+        { "name": "EMAIL_PORT", "value": "587" },
+        { "name": "EMAIL_USER", "value": "your@email.com" },
+        { "name": "EMAIL_PASS", "value": "your_email_password" },
+        { "name": "JWT_SECRET", "value": "secret" },
+        { "name": "VALKEY_HOST", "value": "valkey" },
+        { "name": "VALKEY_PORT", "value": "6379" },
+        { "name": "VALKEY_PASSWORD", "value": "" }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-dev/DATABASE_URL"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/health-clinic-app-dev",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "tags": [
+    { "key": "health-clinic:env", "value": "development" },
+    { "key": "health-clinic:project-name", "value": "health-clinic" }
+  ]
+}

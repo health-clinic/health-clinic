@@ -1,29 +1,106 @@
-Software para agendamento de consulta no "Postinho de Saúde" do SUS. CURSO SUPERIOR DE ANÁLISE E DESENVOLVIMENTO DE SISTEMAS
+# 🏥 postinho-de-saude-backend
 
-DANIEL MORONI OSTOIC URBIN
+Software para agendamento de consultas no "Postinho de Saúde" do SUS.  
+Projeto desenvolvido no **Curso Superior de Análise e Desenvolvimento de Sistemas** do **Centro Universitário Uniftec**.
 
-WILLIAM TREVISAN
+> ⚠️ **Este README está em desenvolvimento e pode ser atualizado futuramente.**
 
-VICTORIA BROMBATTI
+## 👥 Equipe
 
-VINICIUS MEERT
+- Daniel Moroni Ostoic Urbin
+- Douglas Zakicheski
+- Gabriel Vargas Oliveira
+- Pedro Henrique Capssa
+- Victoria Brombatti
+- Vinicius Meert
+- William Trevisan
 
-DOUGLAS ZAKICHESKI
+**Orientadora:** Prof. Ms. Stéfani Valmini
 
-PEDRO HENRIQUE CAPPSSA
+---
 
-GABRIEL VARGAS OLIVEIRA
+## 📚 Sobre o Projeto
 
-Orientador (a): Prof. Ms. Stéfani Valmini
+O **Postinho de Saúde** é um sistema de agendamento de consultas nas **Unidades Básicas de Saúde (UBS)**, facilitando o acesso da população aos serviços de saúde pública.
 
-POSTINHO DE SAUDE
+Este trabalho foi apresentado como parte da disciplina de **Engenharia de Software**, no Curso de Análise e Desenvolvimento de Sistemas, com o objetivo de automatizar os principais processos identificados em um estudo de caso sobre as UBS.
 
-Software para agendamento de consulta no "Postinho de Saúde" do SUS.
+### ✨ Funcionalidades principais
 
-Trabalho apresentado para o Curso de Análise e Desenvolvimento de sistemas, do Centro Universitário Uniftec como parte dos requisitos para avaliação da unidade curricular de Engenharia de Software.
+- Solicitação e confirmação de agendamentos de consultas
+- Acesso a orientações médicas e informações de cuidados de saúde
+- Consulta às datas de futuras consultas com especialistas
+- Integração entre app mobile (Android) e backend (REST API)
 
-Resumo: O projeto tem por finalidade desenvolver um software para o agendamento de consultas nas Unidades Básicas de Saúde. A pesquisa foi conduzida por meio de um estudo de caso, que analisou as necessidades dos usuários e identificou os principais processos a serem automatizados. O sistema a ser implementado permitirá que os usuários solicitem e confirmem agendamentos de maneira prática e rápida, facilitando o acesso aos serviços de saúde pública para pessoas de todas as idades. Para a implementação, serão utilizadas tecnologias como Android para o desenvolvimento do aplicativo móvel e Rest API para a construção do backend, assegurando uma integração eficiente entre as diferentes partes do sistema. Além da funcionalidade de agendamento, o aplicativo proporcionará acesso a orientações médicas, permitindo que os usuários recebam informações sobre cuidados de saúde e detalhes sobre suas prescrições médicas, e contará também com acesso às datas de futuras consultas com especialistas.
+---
 
-Caxias do Sul
+## 🛠️ Tecnologias Utilizadas
 
-Projeto original inicio 2024 Criação do repositorio inicio 2025
+- Node.js
+- Express
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- Redis (Valkey)
+- Docker
+- Amazon ECS (deploy)
+
+---
+
+## 🚀 Como executar o projeto em desenvolvimento
+
+### Pré-requisitos
+
+- Docker
+- Docker Compose
+
+### Rodando com Docker
+
+1. Clone o repositório:
+
+    ```bash
+    git clone git@github.com:health-clinic/health-clinic.git postinho-de-saude-backend
+    cd postinho-de-saude-backend
+    ```
+
+2. Crie o arquivo `.env` baseado no `.env.example`:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+   Edite o arquivo `.env` com suas configurações locais.
+
+3. Inicie o ambiente:
+
+    ```bash
+    docker compose up --build
+    ```
+
+O backend estará disponível em [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🌐 Endpoints principais
+
+- `GET /health` → Health check
+- `POST /api/v1/auth/register` → Criação de novo usuário
+- `POST /api/v1/auth/login` → Login do usuário
+- `POST /api/v1/auth/forgot-password` → Solicitação de redefinição de senha
+- `POST /api/v1/auth/verify-code` → Verificação de código enviado por e-mail
+- `POST /api/v1/auth/reset-password` → Redefinição de senha
+
+---
+
+## 📝 Resumo acadêmico
+
+O projeto visa oferecer uma plataforma prática e intuitiva para agendamento de consultas médicas no SUS, usando tecnologias modernas para assegurar **eficiência**, **segurança** e **escalabilidade**.
+
+O sistema foi idealizado para ser acessível via aplicativo mobile (Android) e garantir integração com o backend via API RESTful.
+
+A proposta inclui também funcionalidades educacionais, como orientações de saúde e visualização de prescrições, fortalecendo o cuidado contínuo com a saúde da comunidade.
+
+---
+
+**Caxias do Sul - RS**  
+Projeto iniciado em 2024 | Repositório criado em 2025

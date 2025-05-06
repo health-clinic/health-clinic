@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: health_clinic
+    ports:
+      - '5432:5432'
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - '3001:3001'
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: sh -c "npm run prisma:generate && npm run dev"
+
+  valkey:
+    image: valkey/valkey
+    ports:
+      - "6379:6379"
+
+volumes:
+  db_data:
