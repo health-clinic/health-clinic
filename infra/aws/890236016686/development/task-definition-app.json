@@ -22,14 +22,14 @@
         { "name": "SUPABASE_URL", "value": "http://localhost:54321" },
         { "name": "SUPABASE_ANON_KEY", "value": "dummykey" },
         { "name": "SECRET_KEY", "value": "your_secret_key" },
-        { "name": "EMAIL_HOST", "value": "smtp.example.com" },
-        { "name": "EMAIL_PORT", "value": "587" },
-        { "name": "EMAIL_USER", "value": "your@email.com" },
-        { "name": "EMAIL_PASS", "value": "your_email_password" },
+        { "name": "MAILTRAP_HOST", "value": "sandbox.smtp.mailtrap.io" },
+        { "name": "MAILTRAP_PORT", "value": "2525" },
+        { "name": "MAILTRAP_USER", "value": "1a9184b19f9f78" },
+        { "name": "MAILTRAP_PASS", "value": "7c9326492e55f9" },
         { "name": "JWT_SECRET", "value": "secret" },
-        { "name": "VALKEY_HOST", "value": "valkey" },
+        { "name": "VALKEY_HOST", "value": "localhost" },
         { "name": "VALKEY_PORT", "value": "6379" },
-        { "name": "VALKEY_PASSWORD", "value": "" }
+        { "name": "VALKEY_PASSWORD", "value": "aRPRxD(%!7rY," }
       ],
       "secrets": [
         {
@@ -37,6 +37,24 @@
           "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-dev/DATABASE_URL"
         }
       ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/health-clinic-app-dev",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    },
+    {
+      "name": "valkey",
+      "image": "valkey/valkey:latest",
+      "portMappings": [
+        { "containerPort": 6379, "protocol": "tcp" }
+      ],
+      "command": ["valkey-server", "--requirepass", "aRPRxD(%!7rY,"],
+      "memoryReservation": 64,
+      "essential": false,
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

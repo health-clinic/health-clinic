@@ -5,7 +5,7 @@ import { tratarResposta } from '../handlers/tratarResposta';
 import { Usuario } from '../models/usuario';
 import { TDataErro } from '../models/types';
 import { enviarErro500 } from '../helpers/responseHelpers';
-import { enviarEmail } from '../helpers/emailHelper';
+import { enviarEmail } from '../helpers/MailtrapMailProvider';
 
 const router = express.Router();
 
