@@ -13,16 +13,38 @@ router.post('/register', async (request: Request, response: Response): Promise<v
     const { name, email, password, document, phone, birthdate, address, role, specialty } =
       request.body;
 
-    const createdAddress = await prisma.address.create({ data: address });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { address: true },
+    });
+    if (user) {
+      response.status(409).json({
+        error:
+          'Este e-mail já está associado a uma conta. Por favor, tente fazer login ou utilize um e-mail diferente para se cadastrar.',
+      });
+
+      return;
+    }
+
+    let createdAddress;
+    if (role === 'patient') {
+      createdAddress = await prisma.address.create({
+        data: {
+          zipCode: address.zip_code,
+          ...omit(address, ['zip_code']),
+        },
+      });
+    }
+
     const createdUser = await prisma.user.create({
       data: {
-        addressId: createdAddress.id,
+        addressId: createdAddress?.id,
         name,
         email,
         password: await bcrypt.hash(password, 10),
         document,
         phone,
-        birthdate: new Date(birthdate),
+        birthdate: birthdate ? new Date(birthdate) : null,
         role,
         specialty,
       },
@@ -39,7 +61,7 @@ router.post('/register', async (request: Request, response: Response): Promise<v
 
     response
       .status(500)
-      .json({ message: 'Não foi possível completar o cadastro. Tente novamente mais tarde.' });
+      .json({ error: 'Não foi possível completar o cadastro. Tente novamente mais tarde.' });
   }
 });
 
@@ -66,13 +88,13 @@ router.post('/login', async (request: Request, response: Response): Promise<void
 
     const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY!, { expiresIn: '30d' });
 
-    response.status(200).json({ token, user: omit(user, ['password']) });
+    response.json({ token, user: omit(user, ['password']) });
   } catch (error) {
     console.error(error);
 
     response
       .status(500)
-      .json({ message: 'Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.' });
+      .json({ error: 'Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.' });
   }
 });
 
@@ -82,7 +104,7 @@ router.post('/forgot-password', async (request: Request, response: Response): Pr
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      response.status(404).json({ message: 'Não encontramos um cadastro com este e-mail.' });
+      response.status(404).json({ error: 'Não encontramos um cadastro com este e-mail.' });
 
       return;
     }
@@ -97,12 +119,12 @@ router.post('/forgot-password', async (request: Request, response: Response): Pr
       `Seu código de recuperação é: ${recoveryCode}`,
     );
 
-    response.status(200).send();
+    response.send();
   } catch (error) {
     console.error(error);
 
     response.status(500).json({
-      message: 'Não foi possível enviar o código de recuperação. Tente novamente mais tarde.',
+      error: 'Não foi possível enviar o código de recuperação. Tente novamente mais tarde.',
     });
   }
 });
@@ -113,20 +135,20 @@ router.post('/verify-code', async (request: Request, response: Response): Promis
 
     const storedCode = await redis.get(`recovery:${email}`);
     if (!storedCode || storedCode !== code) {
-      response.status(200).json({ match: false });
+      response.json({ match: false });
 
       return;
     }
 
     await redis.del(`recovery:${email}`);
 
-    response.status(200).json({ match: true });
+    response.json({ match: true });
   } catch (error) {
     console.error(error);
 
     response
       .status(500)
-      .json({ message: 'Não foi possível validar o código. Tente novamente mais tarde.' });
+      .json({ error: 'Não foi possível validar o código. Tente novamente mais tarde.' });
   }
 });
 
@@ -139,13 +161,13 @@ router.post('/reset-password', async (request: Request, response: Response): Pro
       data: { password: await bcrypt.hash(password, 10) },
     });
 
-    response.status(200).send();
+    response.send();
   } catch (error) {
     console.error(error);
 
     response
       .status(500)
-      .json({ message: 'Não foi possível redefinir a senha. Tente novamente mais tarde.' });
+      .json({ error: 'Não foi possível redefinir a senha. Tente novamente mais tarde.' });
   }
 });
 

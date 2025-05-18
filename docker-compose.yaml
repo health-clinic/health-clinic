@@ -3,37 +3,53 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: health_clinic
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
-      - '5432:5432'
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
     ports:
-      - '3001:3001'
+      - '${APP_PORT:-3001}:3001'
     env_file:
       - .env
     depends_on:
-      - db
-      - valkey
+      db:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
     volumes:
       - .:/app
-    command: sh -c "npm run prisma:generate && npm run prisma:migrate && npm run dev"
+    command: sh -c "npx prisma db push --force-reset && npm run dev"
 
   valkey:
     image: valkey/valkey:latest
     container_name: valkey
     restart: unless-stopped
     ports:
-      - "6379:6379"
-    command: valkey-server --requirepass your_secure_password
+      - "${VALKEY_PORT:-6379}:6379"
+    command: valkey-server --requirepass '${VALKEY_PASSWORD}'
     volumes:
       - valkey_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:
   valkey_data:
+
+networks:
+  default:
+    name: health_clinic_network

@@ -1,103 +1,164 @@
 import express, { Request, Response } from 'express';
-import supabase from '../configs/supabase.config';
+import { prisma } from '../../prisma/client';
+import { omit } from 'lodash';
 
 const router = express.Router();
 
-// GET /units - Lista todas as clínicas
-router.get('/units', async (req: Request, res: Response) => {
+router.get('/units', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { data, error } = await supabase.from('clinica').select('*');
+    const units = await prisma.unit.findMany({
+      include: {
+        address: true,
+      },
+    });
 
-    if (error) {
-      res.status(500).json({ mensagem: 'Erro ao buscar clínicas', error });
-      return;
-    }
-
-    res.json(data);
+    response.json(units);
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error: 'Não foi possível buscar as unidades de saúde. Por favor, tente mais tarde.',
+    });
   }
 });
 
-// GET /units/:id - Retorna uma clínica específica
-router.get('/units/:id', async (req: Request, res: Response) => {
+router.get('/units/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = request.params;
 
-    const { data, error } = await supabase.from('clinica').select('*').eq('id', id).single();
+    const unit = await prisma.unit.findUnique({
+      where: { id: Number(id) },
+      include: {
+        address: true,
+      },
+    });
 
-    if (error || !data) {
-      res.status(404).json({ mensagem: 'Clínica não encontrada' });
+    if (!unit) {
+      response.status(404).json({
+        error: 'Unidade de saúde não encontrada. Verifique se o ID informado está correto.',
+      });
+
       return;
     }
 
-    res.json(data);
+    response.json(unit);
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error:
+        'Não foi possível consultar a unidade de saúde. Por favor, tente novamente mais tarde.',
+    });
   }
 });
 
-// POST /units - Cria uma nova clínica
-router.post('/units', async (req: Request, res: Response) => {
+router.post('/units', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { nome, endereco_id, distancia } = req.body;
+    const { name, phone, distance, address } = request.body;
 
-    const { data, error } = await supabase
-      .from('clinica')
-      .insert([{ nome, endereco_id, distancia }])
-      .select()
-      .single();
+    const createdUnit = await prisma.$transaction(async (tx) => {
+      let storedAddress = await tx.address.findFirst({
+        where: {
+          zipCode: address.zip_code,
+        },
+      });
+      if (!storedAddress) {
+        storedAddress = await tx.address.create({
+          data: {
+            zipCode: address.zip_code,
+            ...omit(address, ['zip_code']),
+          },
+        });
+      }
 
-    if (error) {
-      res.status(400).json({ mensagem: 'Erro ao criar clínica', error });
-      return;
-    }
+      return tx.unit.create({
+        data: {
+          name,
+          phone,
+          addressId: storedAddress.id,
+          distance,
+        },
+        include: {
+          address: true,
+        },
+      });
+    });
 
-    res.status(201).json(data);
+    response.status(201).json(createdUnit);
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(400).json({
+      error:
+        'Não foi possível criar a unidade de saúde. Verifique os dados informados e tente novamente.',
+    });
   }
 });
 
-// PUT /units/:id - Atualiza uma clínica existente
-router.put('/units/:id', async (req: Request, res: Response) => {
+router.put('/units/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const { nome, endereco_id, distancia } = req.body;
+    const { id } = request.params;
+    const { name, address_id: addressId, distance } = request.body;
 
-    const { data, error } = await supabase
-      .from('clinica')
-      .update({ nome, endereco_id, distancia })
-      .eq('id', id)
-      .select()
-      .single();
+    const existingUnit = await prisma.unit.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!existingUnit) {
+      response.status(404).json({
+        error: 'Unidade de saúde não encontrada. Verifique se o ID informado está correto.',
+      });
 
-    if (error || !data) {
-      res.status(404).json({ mensagem: 'Erro ao atualizar clínica', error });
       return;
     }
 
-    res.json(data);
+    const updatedUnit = await prisma.unit.update({
+      where: { id: Number(id) },
+      data: {
+        name,
+        addressId: addressId ? Number(addressId) : undefined,
+        distance,
+      },
+      include: {
+        address: true,
+      },
+    });
+
+    response.json(updatedUnit);
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error: 'Não foi possível atualizar a unidade de saúde. Tente novamente mais tarde.',
+    });
   }
 });
 
-// DELETE /units/:id - Exclui uma clínica
-router.delete('/units/:id', async (req: Request, res: Response) => {
+router.delete('/units/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = request.params;
 
-    const { error } = await supabase.from('clinica').delete().eq('id', id);
+    const existingUnit = await prisma.unit.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!existingUnit) {
+      response.status(404).json({
+        error: 'Unidade de saúde não encontrada. Verifique se o ID informado está correto.',
+      });
 
-    if (error) {
-      res.status(404).json({ mensagem: 'Erro ao excluir clínica', error });
       return;
     }
 
-    res.status(204).send();
+    await prisma.unit.delete({
+      where: { id: Number(id) },
+    });
+
+    response.status(204).send();
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error: 'Não foi possível excluir a unidade de saúde. Tente novamente mais tarde.',
+    });
   }
 });
 
