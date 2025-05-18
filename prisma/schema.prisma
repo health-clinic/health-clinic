@@ -4,22 +4,22 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DB_HOST")
 }
 
 model address {
   id        Int      @id @default(autoincrement())
-  zipCode   String?  @map("cep")
-  state     String?  @map("estado")
-  city      String?  @map("cidade")
-  district  String?  @map("bairro")
-  street    String?  @map("rua")
-  number    String?  @map("numero")
+  zipCode   String   @map("cep")
+  state     String   @map("estado")
+  city      String   @map("cidade")
+  district  String   @map("bairro")
+  street    String   @map("rua")
+  number    Int      @map("numero")
   createdAt DateTime @default(now()) @map("criado_em")
   updatedAt DateTime @updatedAt @map("atualizado_em")
 
-  users   user[]
-  clinics clinic[]
+  users user[]
+  units unit[]
 
   @@map("endereco")
 }
@@ -39,40 +39,68 @@ model user {
   updatedAt DateTime  @updatedAt @map("atualizado_em")
 
   address                  address?      @relation(fields: [addressId], references: [id])
-  appointments             appointment[] @relation("UserAppointments")
+  patientAppointments      appointment[] @relation("PatientAppointments")
   professionalAppointments appointment[] @relation("ProfessionalAppointments")
 
   @@map("usuario")
 }
 
-model clinic {
+model unit {
   id        Int      @id @default(autoincrement())
   addressId Int?     @map("endereco_id")
-  name      String?  @map("nome")
-  distance  String?  @map("distancia")
+  name      String   @map("nome")
+  phone     String   @map("telefone")
+  distance  String   @map("distancia")
   createdAt DateTime @default(now()) @map("criado_em")
   updatedAt DateTime @updatedAt @map("atualizado_em")
 
   address      address?      @relation(fields: [addressId], references: [id])
   appointments appointment[]
 
-  @@map("clinica")
+  @@map("unidade")
+}
+
+model diagnosis {
+  id            Int      @id @default(autoincrement())
+  description   String   @map("descricao")
+  appointmentId Int      @map("agendamento_id")
+  createdAt     DateTime @default(now()) @map("criado_em")
+  updatedAt     DateTime @updatedAt @map("atualizado_em")
+
+  appointment appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@map("diagnostico")
+}
+
+model prescription {
+  id            Int      @id @default(autoincrement())
+  description   String   @map("descricao")
+  appointmentId Int      @map("agendamento_id")
+  createdAt     DateTime @default(now()) @map("criado_em")
+  updatedAt     DateTime @updatedAt @map("atualizado_em")
+
+  appointment appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@map("receita")
 }
 
 model appointment {
-  id        Int       @id @default(autoincrement())
-  clinicId  Int?      @map("clinica_id")
-  doctorId  Int?      @map("medico_id")
-  date      DateTime? @map("data")
-  status    String?   @map("status")
-  createdAt DateTime  @default(now()) @map("criado_em")
-  updatedAt DateTime  @updatedAt @map("atualizado_em")
+  id             Int      @id @default(autoincrement())
+  unitId         Int      @map("unidade_id")
+  professionalId Int      @map("medico_id")
+  patientId      Int      @map("paciente_id")
+  status         String   @default("scheduled") @map("status")
+  scheduledFor   DateTime @map("data")
+  scheduledAt    DateTime @default(now()) @map("agendado_em")
+  complaints     String[] @default([]) @map("queixas")
+  createdAt      DateTime @default(now()) @map("criado_em")
+  updatedAt      DateTime @updatedAt @map("atualizado_em")
 
-  clinic       clinic? @relation(fields: [clinicId], references: [id])
-  user         user?   @relation("UserAppointments", fields: [userId], references: [id])
-  professional user?   @relation("ProfessionalAppointments", fields: [doctorId], references: [id])
-
-  userId Int?
+  unit          unit           @relation(fields: [unitId], references: [id])
+  professional  user           @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
+  patient       user           @relation("PatientAppointments", fields: [patientId], references: [id])
+  diagnoses     diagnosis[]
+  prescriptions prescription[]
 
   @@map("agendamento")
 }

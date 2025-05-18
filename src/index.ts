@@ -1,17 +1,23 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth';
+import appointmentsRouter from './routes/appointments';
+import professionalsRouter from './routes/professionals';
+import unitsRouter from './routes/units';
+
+const port = parseInt(process.env.APP_PORT || '3001', 10);
+const environment = process.env.NODE_ENV || 'development';
 
 const app = express();
-
-const port = parseInt(process.env.APP_PORT || '3000', 10);
-const environment = process.env.NODE_ENV || 'development';
 
 app.use(express.json());
 
 const router = express.Router();
 router.use(cors());
 router.use('/auth', authRouter);
+router.use('/', appointmentsRouter);
+router.use('/', professionalsRouter);
+router.use('/', unitsRouter);
 
 app.use('/api/v1', router);
 

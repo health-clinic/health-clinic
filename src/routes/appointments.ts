@@ -1,127 +1,260 @@
 import express, { Request, Response } from 'express';
-import supabase from '../configs/supabase.config';
+import { omit } from 'lodash';
+import { prisma } from '../../prisma/client';
 
 const router = express.Router();
 
-// GET /appointments - Lista todos os agendamentos
-router.get('/appointments', async (req: Request, res: Response) => {
+router.get('/appointments', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { data, error } = await supabase.from('agendamento').select('*');
+    const {
+      status,
+      date_from: from,
+      date_to: to,
+      professional_id: professionalId,
+      unit_id: unitId,
+      patient_id: patientId,
+    } = request.query;
 
-    if (error) {
-      res.status(500).json({ mensagem: 'Erro ao buscar agendamentos', error });
-      return;
-    }
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        ...(status ? { status: status as string } : {}),
+        ...(from || to
+          ? {
+              date: {
+                ...(from ? { gte: new Date(from as string) } : {}),
+                ...(to ? { lte: new Date(to as string) } : {}),
+              },
+            }
+          : {}),
+        ...(professionalId ? { professionalId: Number(professionalId) } : {}),
+        ...(unitId ? { unitId: Number(unitId) } : {}),
+        ...(patientId ? { patientId: Number(patientId) } : {}),
+      },
+      orderBy: {
+        scheduledFor: 'asc',
+      },
+      include: {
+        unit: {
+          include: {
+            address: true,
+          },
+        },
+        professional: {
+          include: {
+            address: true,
+          },
+        },
+        patient: {
+          include: {
+            address: true,
+          },
+        },
+      },
+    });
 
-    res.json(data);
+    response.json(
+      appointments.map((appointment) => ({
+        ...appointment,
+        professional: omit(appointment.professional, ['password']),
+        patient: omit(appointment.patient, ['password']),
+      })),
+    );
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response
+      .status(500)
+      .json({ error: 'Não foi possível buscar os agendamentos. Por favor, tente mais tarde.' });
   }
 });
 
-// GET /appointments/:id - Retorna um agendamento específico
-router.get('/appointments/:id', async (req: Request, res: Response) => {
+router.get('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = request.params;
 
-    const { data, error } = await supabase.from('agendamento').select('*').eq('id', id).single();
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: Number(id) },
+      include: {
+        unit: true,
+        professional: true,
+        patient: true,
+      },
+    });
+    if (!appointment) {
+      response.status(404).json({
+        error:
+          'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
+      });
 
-    if (error || !data) {
-      res.status(404).json({ mensagem: 'Agendamento não encontrado' });
       return;
     }
 
-    res.json(data);
+    response.json({
+      ...appointment,
+      professional: omit(appointment.professional, ['password']),
+      patient: omit(appointment.patient, ['password']),
+    });
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error: 'Não foi possível consultar o agendamento. Por favor, tente novamente mais tarde.',
+    });
   }
 });
 
-// POST /appointments - Cria um novo agendamento
-router.post('/appointments', async (req: Request, res: Response) => {
+router.post('/appointments', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { clinica_id, medico_id, data, status } = req.body;
+    const {
+      professional_id: professionalId,
+      patient_id: patientId,
+      unit_id: unitId,
+      scheduled_for: scheduledFor,
+    } = request.body;
 
-    const { data: createdData, error } = await supabase
-      .from('agendamento')
-      .insert([{ clinica_id, medico_id, data, status }])
-      .select()
-      .single();
+    const appointment = await prisma.appointment.findFirst({
+      where: {
+        professionalId: Number(professionalId),
+        scheduledFor: new Date(scheduledFor),
+        NOT: {
+          status: 'cancelled',
+        },
+      },
+    });
+    if (appointment) {
+      response.status(409).json({
+        error:
+          'O profissional já possui um agendamento neste horário. Por favor, escolha outro horário.',
+      });
 
-    if (error) {
-      res.status(400).json({ mensagem: 'Erro ao criar agendamento', error });
       return;
     }
 
-    res.status(201).json(createdData);
+    const createdAppointment = await prisma.appointment.create({
+      data: {
+        professionalId: Number(professionalId),
+        patientId: Number(patientId),
+        unitId: Number(unitId),
+        scheduledFor: new Date(scheduledFor),
+      },
+      include: {
+        unit: true,
+        professional: true,
+        patient: true,
+      },
+    });
+
+    response.status(201).json({
+      appointment: {
+        ...createdAppointment,
+        professional: omit(createdAppointment.professional, ['password']),
+        patient: omit(createdAppointment.patient, ['password']),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(400).json({
+      error:
+        'Não foi possível criar o agendamento. Verifique os dados informados e tente novamente.',
+    });
   }
 });
 
-// PUT /appointments/:id - Atualiza um agendamento existente
-router.put('/appointments/:id', async (req: Request, res: Response) => {
+router.put('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const { clinica_id, medico_id, data, status } = req.body;
+    const { id } = request.params;
+    const { scheduled_at: scheduledAt } = request.body;
 
-    const { data: updatedData, error } = await supabase
-      .from('agendamento')
-      .update({ clinica_id, medico_id, data, status })
-      .eq('id', id)
-      .select()
-      .single();
+    const updatedAppointment = await prisma.appointment.update({
+      where: { id: Number(id) },
+      data: {
+        date: new Date(scheduledAt),
+      },
+      include: {
+        unit: true,
+        professional: true,
+        patient: true,
+      },
+    });
 
-    if (error || !updatedData) {
-      res.status(404).json({ mensagem: 'Erro ao atualizar agendamento', error });
-      return;
-    }
-
-    res.json(updatedData);
+    response.json({
+      appointment: {
+        ...updatedAppointment,
+        professional: omit(updatedAppointment.professional, ['password']),
+        patient: omit(updatedAppointment.patient, ['password']),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    console.error(error);
+
+    response.status(500).json({
+      error: 'Não foi possível atualizar o horário do agendamento. Tente novamente mais tarde.',
+    });
   }
 });
 
-// PATCH /appointments/:id/status - Atualiza o status de um agendamento
-router.patch('/appointments/:id/status', async (req: Request, res: Response) => {
+router.patch(
+  '/appointments/:id/status',
+  async (request: Request, response: Response): Promise<void> => {
+    try {
+      const { id } = request.params;
+      const { status } = request.body;
+
+      const updatedAppointment = await prisma.appointment.update({
+        where: { id: Number(id) },
+        data: { status },
+        include: {
+          unit: true,
+          professional: true,
+          patient: true,
+        },
+      });
+
+      response.json({
+        appointment: {
+          ...updatedAppointment,
+          professional: omit(updatedAppointment.professional, ['password']),
+          patient: omit(updatedAppointment.patient, ['password']),
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      response.status(500).json({
+        error: 'Não foi possível atualizar o status do agendamento. Tente novamente mais tarde.',
+      });
+    }
+  },
+);
+
+router.delete('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const { id } = request.params;
 
-    const { data: updatedData, error } = await supabase
-      .from('agendamento')
-      .update({ status })
-      .eq('id', id)
-      .select()
-      .single();
+    const existingAppointment = await prisma.appointment.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!existingAppointment) {
+      response.status(404).json({
+        error:
+          'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
+      });
 
-    if (error || !updatedData) {
-      res.status(404).json({ mensagem: 'Erro ao atualizar status do agendamento', error });
       return;
     }
 
-    res.json(updatedData);
+    await prisma.appointment.delete({
+      where: { id: Number(id) },
+    });
+
+    response.status(204).send();
   } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
-  }
-});
+    console.error(error);
 
-// DELETE /appointments/:id - Exclui um agendamento
-router.delete('/appointments/:id', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const { error } = await supabase.from('agendamento').delete().eq('id', id);
-
-    if (error) {
-      res.status(404).json({ mensagem: 'Erro ao excluir agendamento', error });
-      return;
-    }
-
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ mensagem: 'Erro interno no servidor', error });
+    response.status(500).json({
+      error: 'Não foi possível excluir o agendamento. Tente novamente mais tarde.',
+    });
   }
 });
 
