@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
-import { prisma } from '../../prisma/client';
+import { prisma } from '../prisma/client';
 
 const router = express.Router();
 

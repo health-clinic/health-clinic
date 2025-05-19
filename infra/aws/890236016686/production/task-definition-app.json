@@ -1,0 +1,72 @@
+{
+  "family": "health-clinic-app-prod",
+  "cpu": "512",
+  "memory": "1024",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "executionRoleArn": "arn:aws:iam::890236016686:role/ecs-taskexecutionrole-health-clinic-prod",
+  "taskRoleArn": "arn:aws:iam::890236016686:role/ecs-taskrole-health-clinic-prod",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "890236016686.dkr.ecr.us-east-1.amazonaws.com/health-clinic-app:0.0.2",
+      "portMappings": [
+        {
+          "containerPort": 3001,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "APP_PORT", "value": "3001" },
+        { "name": "SUPABASE_URL", "value": "https://your-production.supabase.co" },
+        { "name": "SUPABASE_ANON_KEY", "value": "your_prod_supabase_anon_key" },
+        { "name": "SECRET_KEY", "value": "your_prod_secret_key" },
+        { "name": "MAILTRAP_HOST", "value": "smtp.mailtrap.io" },
+        { "name": "MAILTRAP_PORT", "value": "2525" },
+        { "name": "MAILTRAP_USER", "value": "your_prod_user" },
+        { "name": "MAILTRAP_PASS", "value": "your_prod_pass" },
+        { "name": "JWT_SECRET", "value": "bR5Yy07W]mAxU" },
+        { "name": "VALKEY_HOST", "value": "localhost" },
+        { "name": "VALKEY_PORT", "value": "6379" },
+        { "name": "VALKEY_PASSWORD", "value": "|r/E#ES8|$7Jy" }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-prod/DATABASE_URL"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/health-clinic-app-prod",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    },
+    {
+      "name": "valkey",
+      "image": "valkey/valkey:latest",
+      "portMappings": [
+        { "containerPort": 6379, "protocol": "tcp" }
+      ],
+      "command": ["valkey-server", "--requirepass", "|r/E#ES8|$7Jy"],
+      "memoryReservation": 128,
+      "essential": false,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/health-clinic-app-prod",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "tags": [
+    { "key": "health-clinic:env", "value": "production" },
+    { "key": "health-clinic:project-name", "value": "health-clinic" }
+  ]
+}

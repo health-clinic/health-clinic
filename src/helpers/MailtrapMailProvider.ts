@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from 'nodemailer';
 
 class MailtrapMailProvider {
-  private client: Transporter;
+  private client!: Transporter;
 
   constructor() {
     this.createClient();

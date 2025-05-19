@@ -12,7 +12,7 @@
       "image": "890236016686.dkr.ecr.us-east-1.amazonaws.com/health-clinic-app:latest",
       "portMappings": [
         {
-          "containerPort": 3000,
+          "containerPort": 3001,
           "protocol": "tcp"
         }
       ],
@@ -26,7 +26,7 @@
         { "name": "MAILTRAP_PORT", "value": "2525" },
         { "name": "MAILTRAP_USER", "value": "1a9184b19f9f78" },
         { "name": "MAILTRAP_PASS", "value": "7c9326492e55f9" },
-        { "name": "JWT_SECRET", "value": "secret" },
+        { "name": "JWT_SECRET", "value": ")1[O`rfzC6[)t" },
         { "name": "VALKEY_HOST", "value": "localhost" },
         { "name": "VALKEY_PORT", "value": "6379" },
         { "name": "VALKEY_PASSWORD", "value": "aRPRxD(%!7rY," }

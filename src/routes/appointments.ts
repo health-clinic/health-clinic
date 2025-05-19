@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
-import { prisma } from '../../prisma/client';
+import { prisma } from '../prisma/client';
 
 const router = express.Router();
 
@@ -169,7 +169,7 @@ router.put('/appointments/:id', async (request: Request, response: Response): Pr
     const updatedAppointment = await prisma.appointment.update({
       where: { id: Number(id) },
       data: {
-        date: new Date(scheduledAt),
+        scheduledFor: new Date(scheduledAt),
       },
       include: {
         unit: true,

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 import MailtrapMailProvider from '../helpers/MailtrapMailProvider';
-import { prisma } from '../../prisma/client';
+import { prisma } from '../prisma/client';
 import { redis } from '../configs/valkey/client';
 
 const router = express.Router();
@@ -31,7 +31,11 @@ router.post('/register', async (request: Request, response: Response): Promise<v
       createdAddress = await prisma.address.create({
         data: {
           zipCode: address.zip_code,
-          ...omit(address, ['zip_code']),
+          state: address.state,
+          city: address.city,
+          district: address.district,
+          street: address.street,
+          number: Number(address.number),
         },
       });
     }
@@ -74,16 +78,20 @@ router.post('/login', async (request: Request, response: Response): Promise<void
       include: { address: true },
     });
     if (!user) {
-      return response
+      response
         .status(422)
         .json({ error: 'Usuário ou senha incorretos. Verifique suas credenciais.' });
+
+      return;
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(password, user.password!);
     if (!passwordMatch) {
-      return response
+      response
         .status(422)
         .json({ error: 'Usuário ou senha incorretos. Verifique suas credenciais.' });
+
+      return;
     }
 
     const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY!, { expiresIn: '30d' });

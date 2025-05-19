@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DB_HOST")
+  url      = env("DATABASE_URL")
 }
 
 model address {
@@ -27,13 +27,13 @@ model address {
 model user {
   id        Int       @id @default(autoincrement())
   addressId Int?      @map("endereco_id")
-  name      String?   @map("nome")
-  email     String?   @unique @map("email")
-  password  String?   @map("senha")
+  name      String    @map("nome")
+  email     String    @unique @map("email")
+  password  String    @map("senha")
   document  String?   @map("cpf")
   phone     String?   @map("telefone")
   birthdate DateTime? @map("data_nascimento")
-  role      String?   @map("tipo")
+  role      String    @map("tipo")
   specialty String?   @map("especialidade")
   createdAt DateTime  @default(now()) @map("criado_em")
   updatedAt DateTime  @updatedAt @map("atualizado_em")

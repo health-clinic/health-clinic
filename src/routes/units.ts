@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import { prisma } from '../../prisma/client';
 import { omit } from 'lodash';
+import { prisma } from '../prisma/client';
 
 const router = express.Router();
 
@@ -66,7 +66,11 @@ router.post('/units', async (request: Request, response: Response): Promise<void
         storedAddress = await tx.address.create({
           data: {
             zipCode: address.zip_code,
-            ...omit(address, ['zip_code']),
+            state: address.state,
+            city: address.city,
+            district: address.district,
+            street: address.street,
+            number: address.number,
           },
         });
       }

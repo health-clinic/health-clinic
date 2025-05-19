@@ -1,0 +1,30 @@
+# Node dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+dist
+.cache
+.next
+out
+
+# TypeScript
+*.tsbuildinfo
+
+# Local environment config (very important)
+.env
+.env.*
+
+# OS/Editor cruft
+.DS_Store
+*.swp
+*.swo
+*.log
+
+# Git
+.git
+.gitignore
+
+# Prisma generated client cache (will be recompiled in container if needed)
+src/prisma/migrations
