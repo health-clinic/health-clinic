@@ -110,9 +110,10 @@ router.post('/appointments', async (request: Request, response: Response): Promi
       patient_id: patientId,
       unit_id: unitId,
       scheduled_for: scheduledFor,
+      prescriptions,
     } = request.body;
 
-    const appointment = await prisma.appointment.findFirst({
+    const alreadyExists = await prisma.appointment.findFirst({
       where: {
         professionalId: Number(professionalId),
         scheduledFor: new Date(scheduledFor),
@@ -121,7 +122,7 @@ router.post('/appointments', async (request: Request, response: Response): Promi
         },
       },
     });
-    if (appointment) {
+    if (alreadyExists) {
       response.status(409).json({
         error:
           'O profissional já possui um agendamento neste horário. Por favor, escolha outro horário.',
@@ -130,19 +131,47 @@ router.post('/appointments', async (request: Request, response: Response): Promi
       return;
     }
 
-    const createdAppointment = await prisma.appointment.create({
-      data: {
-        professionalId: Number(professionalId),
-        patientId: Number(patientId),
-        unitId: Number(unitId),
-        scheduledFor: new Date(scheduledFor),
-      },
-      include: {
-        unit: true,
-        professional: true,
-        patient: true,
-      },
+    const createdAppointment = await prisma.$transaction(async (tx) => {
+      const appointment = await tx.appointment.create({
+        data: {
+          professionalId: Number(professionalId),
+          patientId: Number(patientId),
+          unitId: Number(unitId),
+          scheduledFor: new Date(scheduledFor),
+        },
+        include: {
+          unit: true,
+          professional: true,
+          patient: true,
+        },
+      });
+
+      if (prescriptions && prescriptions.length > 0) {
+        await tx.prescription.createMany({
+          data: prescriptions.map((prescription) => ({
+            name: prescription.name,
+            dosage: prescription.dosage,
+            frequency: prescription.frequency,
+            duration: prescription.duration,
+            appointmentId: appointment.id,
+          })),
+        });
+      }
+
+      return tx.appointment.findUnique({
+        where: { id: appointment.id },
+        include: {
+          unit: true,
+          professional: true,
+          patient: true,
+          prescriptions: true,
+        },
+      });
     });
+
+    if (!createdAppointment) {
+      throw new Error('Failed to create appointment');
+    }
 
     response.status(201).json({
       appointment: {

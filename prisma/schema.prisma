@@ -74,7 +74,10 @@ model diagnosis {
 
 model prescription {
   id            Int      @id @default(autoincrement())
-  description   String   @map("descricao")
+  name          String   @map("nome")
+  dosage        String   @map("dosagem")
+  frequency     String   @map("frequencia")
+  duration      String   @map("duracao")
   appointmentId Int      @map("agendamento_id")
   createdAt     DateTime @default(now()) @map("criado_em")
   updatedAt     DateTime @updatedAt @map("atualizado_em")
