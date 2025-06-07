@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
+import { startOfDay, endOfDay } from 'date-fns';
 import { prisma } from '../prisma/client';
-import { startOfDay, endOfDay } from 'date-fns
-  
+
 const router = express.Router();
 
 router.get('/appointments', async (request: Request, response: Response): Promise<void> => {
