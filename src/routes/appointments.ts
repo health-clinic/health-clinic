@@ -68,6 +68,55 @@ router.get('/appointments', async (request: Request, response: Response): Promis
   }
 });
 
+router.get('/appointments/last-week', async (request: Request, response: Response): Promise<void> => {
+  try {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        scheduledFor: {
+          gte: oneWeekAgo,
+        },
+        status: 'completed',
+      },
+      orderBy: {
+        scheduledFor: 'desc',
+      },
+      include: {
+        unit: {
+          include: {
+            address: true,
+          },
+        },
+        professional: {
+          include: {
+            address: true,
+          },
+        },
+        patient: {
+          include: {
+            address: true,
+          },
+        },
+      },
+    });
+
+    response.json(
+      appointments.map((appointment) => ({
+        ...appointment,
+        professional: omit(appointment.professional, ['password']),
+        patient: omit(appointment.patient, ['password']),
+      }))
+    );
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({
+      error: 'Não foi possível buscar o histórico da última semana.',
+    });
+  }
+});
+
 router.get('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
     const { id } = request.params;
@@ -85,7 +134,6 @@ router.get('/appointments/:id', async (request: Request, response: Response): Pr
         error:
           'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
       });
-
       return;
     }
 
@@ -127,7 +175,6 @@ router.post('/appointments', async (request: Request, response: Response): Promi
         error:
           'O profissional já possui um agendamento neste horário. Por favor, escolha outro horário.',
       });
-
       return;
     }
 
@@ -223,39 +270,36 @@ router.put('/appointments/:id', async (request: Request, response: Response): Pr
   }
 });
 
-router.patch(
-  '/appointments/:id/status',
-  async (request: Request, response: Response): Promise<void> => {
-    try {
-      const { id } = request.params;
-      const { status } = request.body;
+router.patch('/appointments/:id/status', async (request: Request, response: Response): Promise<void> => {
+  try {
+    const { id } = request.params;
+    const { status } = request.body;
 
-      const updatedAppointment = await prisma.appointment.update({
-        where: { id: Number(id) },
-        data: { status },
-        include: {
-          unit: true,
-          professional: true,
-          patient: true,
-        },
-      });
+    const updatedAppointment = await prisma.appointment.update({
+      where: { id: Number(id) },
+      data: { status },
+      include: {
+        unit: true,
+        professional: true,
+        patient: true,
+      },
+    });
 
-      response.json({
-        appointment: {
-          ...updatedAppointment,
-          professional: omit(updatedAppointment.professional, ['password']),
-          patient: omit(updatedAppointment.patient, ['password']),
-        },
-      });
-    } catch (error) {
-      console.error(error);
+    response.json({
+      appointment: {
+        ...updatedAppointment,
+        professional: omit(updatedAppointment.professional, ['password']),
+        patient: omit(updatedAppointment.patient, ['password']),
+      },
+    });
+  } catch (error) {
+    console.error(error);
 
-      response.status(500).json({
-        error: 'Não foi possível atualizar o status do agendamento. Tente novamente mais tarde.',
-      });
-    }
-  },
-);
+    response.status(500).json({
+      error: 'Não foi possível atualizar o status do agendamento. Tente novamente mais tarde.',
+    });
+  }
+});
 
 router.delete('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
@@ -269,7 +313,6 @@ router.delete('/appointments/:id', async (request: Request, response: Response):
         error:
           'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
       });
-
       return;
     }
 
