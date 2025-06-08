@@ -116,7 +116,7 @@ model notification {
   metadata  Json?
   createdAt DateTime  @default(now()) @map("criado_em")
   updatedAt DateTime  @updatedAt @map("atualizado_em")
-  readAt    DateTime? @map("lido_em") // Adicione essa linha
+  readAt    DateTime? @map("lido_em") 
 
   user user @relation("UserNotifications", fields: [userId], references: [id])
 
