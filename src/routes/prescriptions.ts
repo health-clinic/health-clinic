@@ -18,20 +18,20 @@ router.get('/prescriptions', async (request: Request, response: Response): Promi
         appointment: {
           include: {
             patient: {
-                include: {
-                  address: true,
-                },
+              include: {
+                address: true,
+              },
             },
             professional: {
-                include: {
-                    address: true,
-                },
+              include: {
+                address: true,
+              },
             },
             unit: {
-                include: {
-                    address: true,
-                },
-            },  
+              include: {
+                address: true,
+              },
+            },
           },
         },
       },
