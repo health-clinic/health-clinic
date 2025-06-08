@@ -41,6 +41,7 @@ model user {
   address                  address?      @relation(fields: [addressId], references: [id])
   patientAppointments      appointment[] @relation("PatientAppointments")
   professionalAppointments appointment[] @relation("ProfessionalAppointments")
+  notifications            notification[] @relation("UserNotifications")
 
   @@map("usuario")
 }
@@ -106,4 +107,18 @@ model appointment {
   prescriptions prescription[]
 
   @@map("agendamento")
+}
+model notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  title     String
+  content   String
+  metadata  Json?
+  createdAt DateTime  @default(now()) @map("criado_em")
+  updatedAt DateTime  @updatedAt @map("atualizado_em")
+  readAt    DateTime? @map("lido_em") 
+
+  user user @relation("UserNotifications", fields: [userId], references: [id])
+
+  @@map("notificacao")
 }
