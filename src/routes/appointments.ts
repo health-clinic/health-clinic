@@ -69,58 +69,6 @@ router.get('/appointments', async (request: Request, response: Response): Promis
   }
 });
 
-router.get(
-  '/appointments/last-week',
-  async (request: Request, response: Response): Promise<void> => {
-    try {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-      const appointments = await prisma.appointment.findMany({
-        where: {
-          scheduledFor: {
-            gte: oneWeekAgo,
-          },
-          status: 'completed',
-        },
-        orderBy: {
-          scheduledFor: 'desc',
-        },
-        include: {
-          unit: {
-            include: {
-              address: true,
-            },
-          },
-          professional: {
-            include: {
-              address: true,
-            },
-          },
-          patient: {
-            include: {
-              address: true,
-            },
-          },
-        },
-      });
-
-      response.json(
-        appointments.map((appointment) => ({
-          ...appointment,
-          professional: omit(appointment.professional, ['password']),
-          patient: omit(appointment.patient, ['password']),
-        })),
-      );
-    } catch (error) {
-      console.error(error);
-      response.status(500).json({
-        error: 'Não foi possível buscar o histórico da última semana.',
-      });
-    }
-  },
-);
-
 router.get('/appointments/:id', async (request: Request, response: Response): Promise<void> => {
   try {
     const { id } = request.params;
