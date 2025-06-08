@@ -77,21 +77,31 @@ router.post('/notifications', async (request: Request, response: Response): Prom
   }
 });
 
-router.patch('/notifications/:id/read', async (request: Request, response: Response): Promise<void> => {
+router.post('/notifications/read', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { id } = request.params;
+    const { notifications } = request.body;
 
-    const updatedNotification = await prisma.notification.update({
-      where: { id: Number(id) },
+    if (!notifications || !Array.isArray(notifications)) {
+      response.status(400).json({
+        error: 'É necessário fornecer um array de IDs de notificações.',
+      });
+      return;
+    }
+
+    const updatedNotifications = await prisma.notification.updateMany({
+      where: { id: { in: notifications.map(id => Number(id)) } },
       data: { readAt: new Date() },
     });
 
-    response.json(updatedNotification);
+    response.json({ 
+      message: 'Notificações marcadas como lidas com sucesso.', 
+      count: updatedNotifications.count 
+    });
   } catch (error) {
     console.error(error);
 
     response.status(500).json({
-      error: 'Não foi possível marcar a notificação como lida. Por favor, tente novamente mais tarde.',
+      error: 'Não foi possível marcar as notificações como lidas. Por favor, tente novamente mais tarde.',
     });
   }
 });
