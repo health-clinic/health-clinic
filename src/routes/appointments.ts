@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
-import { startOfDay, endOfDay } from 'date-fns';
+import { endOfDay, startOfDay } from 'date-fns';
 import { prisma } from '../prisma/client';
 
 const router = express.Router();
@@ -86,7 +86,6 @@ router.get('/appointments/:id', async (request: Request, response: Response): Pr
         error:
           'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
       });
-
       return;
     }
 
@@ -128,7 +127,6 @@ router.post('/appointments', async (request: Request, response: Response): Promi
         error:
           'O profissional já possui um agendamento neste horário. Por favor, escolha outro horário.',
       });
-
       return;
     }
 
@@ -270,7 +268,6 @@ router.delete('/appointments/:id', async (request: Request, response: Response):
         error:
           'Não encontramos um agendamento com o ID informado, verifique se o mesmo está correto.',
       });
-
       return;
     }
 
