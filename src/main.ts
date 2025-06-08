@@ -5,6 +5,7 @@ import appointmentsRouter from './routes/appointments';
 import professionalsRouter from './routes/professionals';
 import unitsRouter from './routes/units';
 import prescriptionsRouter from './routes/prescriptions';
+import notificationsRouter from './routes/notifications';
 
 const port = parseInt(process.env.APP_PORT || '3001', 10);
 const environment = process.env.NODE_ENV || 'development';
@@ -20,6 +21,7 @@ router.use('/', appointmentsRouter);
 router.use('/', professionalsRouter);
 router.use('/', unitsRouter);
 router.use('/', prescriptionsRouter);
+router.use('/', notificationsRouter);
 
 app.use('/api/v1', router);
 
