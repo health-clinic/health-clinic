@@ -85,6 +85,20 @@ CREATE TABLE "agendamento" (
     CONSTRAINT "agendamento_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "notificacao" (
+    "id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "metadata" JSONB,
+    "criado_em" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizado_em" TIMESTAMP(3) NOT NULL,
+    "lido_em" TIMESTAMP(3),
+
+    CONSTRAINT "notificacao_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "usuario_email_key" ON "usuario"("email");
 
@@ -108,3 +122,6 @@ ALTER TABLE "agendamento" ADD CONSTRAINT "agendamento_medico_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "agendamento" ADD CONSTRAINT "agendamento_paciente_id_fkey" FOREIGN KEY ("paciente_id") REFERENCES "usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notificacao" ADD CONSTRAINT "notificacao_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
