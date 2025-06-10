@@ -19,9 +19,6 @@
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
         { "name": "APP_PORT", "value": "3001" },
-        { "name": "SUPABASE_URL", "value": "https://your-production.supabase.co" },
-        { "name": "SUPABASE_ANON_KEY", "value": "your_prod_supabase_anon_key" },
-        { "name": "SECRET_KEY", "value": "your_prod_secret_key" },
         { "name": "MAILTRAP_HOST", "value": "smtp.mailtrap.io" },
         { "name": "MAILTRAP_PORT", "value": "2525" },
         { "name": "MAILTRAP_USER", "value": "your_prod_user" },
