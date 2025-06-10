@@ -55,7 +55,7 @@ router.post('/register', async (request: Request, response: Response): Promise<v
       include: { address: true },
     });
 
-    const token = jwt.sign({ email: createdUser.email }, process.env.SECRET_KEY!, {
+    const token = jwt.sign({ email: createdUser.email }, process.env.JWT_SECRET!, {
       expiresIn: '30d',
     });
 
@@ -94,7 +94,7 @@ router.post('/login', async (request: Request, response: Response): Promise<void
       return;
     }
 
-    const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY!, { expiresIn: '30d' });
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET!, { expiresIn: '30d' });
 
     response.json({ token, user: omit(user, ['password']) });
   } catch (error) {

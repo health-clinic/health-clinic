@@ -67,23 +67,30 @@ router.post('/notifications/read', async (request: Request, response: Response):
   try {
     const { notifications } = request.body;
 
-    if (!notifications || !Array.isArray(notifications)) {
-      response.status(400).json({
-        error: 'É necessário fornecer um array de IDs de notificações.',
+    const updatedNotifications = await prisma.$transaction(async (tx) => {
+      await tx.notification.updateMany({
+        where: { id: { in: notifications.map((id) => Number(id)) } },
+        data: { readAt: new Date() },
       });
 
-      return;
-    }
-
-    const updatedNotifications = await prisma.notification.updateMany({
-      where: { id: { in: notifications.map((id) => Number(id)) } },
-      data: { readAt: new Date() },
+      return tx.notification.findMany({
+        where: { id: { in: notifications.map((id) => Number(id)) } },
+        include: {
+          user: {
+            include: {
+              address: true,
+            },
+          },
+        },
+      });
     });
 
-    response.json({
-      message: 'Notificações marcadas como lidas com sucesso.',
-      count: updatedNotifications.count,
-    });
+    response.json(
+      updatedNotifications.map((notification) => ({
+        ...notification,
+        user: omit(notification.user, ['password']),
+      })),
+    );
   } catch (error) {
     console.error(error);
 
