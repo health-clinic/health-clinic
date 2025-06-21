@@ -45,6 +45,21 @@ model user {
 
   @@map("usuario")
 }
+model professional_schedule {
+  id             Int      @id @default(autoincrement())
+  unitId         Int      @map("unidade_id")
+  professionalId Int      @map("profissional_id")
+  dayOfWeek      Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
+  start          DateTime @db.Time @map("inicio")
+  end            DateTime @db.Time @map("fim")
+  createdAt      DateTime @default(now()) @map("criado_em")
+  updatedAt      DateTime @updatedAt @map("atualizado_em")
+
+  unit         unidade @relation(fields: [unitId], references: [id])
+  professional usuario @relation(fields: [professionalId], references: [id])
+
+  @@map("profissional_escala")
+}
 
 model unit {
   id        Int      @id @default(autoincrement())
@@ -60,7 +75,19 @@ model unit {
 
   @@map("unidade")
 }
+model unit_schedule {
+  id          Int      @id @default(autoincrement())
+  unitId      Int      @map("unidade_id")
+  dayOfWeek   Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
+  opening     DateTime @db.Time @map("inicio")
+  closing     DateTime @db.Time @map("fim")
+  createdAt   DateTime @default(now()) @map("criado_em")
+  updatedAt   DateTime @updatedAt @map("atualizado_em")
 
+  unit unidade @relation(fields: [unitId], references: [id])
+
+  @@map("unidade_funcionamento")
+}
 model diagnosis {
   id            Int      @id @default(autoincrement())
   description   String   @map("descricao")
