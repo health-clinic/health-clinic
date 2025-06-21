@@ -42,9 +42,11 @@ model user {
   patientAppointments      appointment[] @relation("PatientAppointments")
   professionalAppointments appointment[] @relation("ProfessionalAppointments")
   notifications            notification[] @relation("UserNotifications")
+  professionalSchedules    professional_schedule[]
 
   @@map("usuario")
 }
+
 model professional_schedule {
   id             Int      @id @default(autoincrement())
   unitId         Int      @map("unidade_id")
@@ -55,8 +57,8 @@ model professional_schedule {
   createdAt      DateTime @default(now()) @map("criado_em")
   updatedAt      DateTime @updatedAt @map("atualizado_em")
 
-  unit         unidade @relation(fields: [unitId], references: [id])
-  professional usuario @relation(fields: [professionalId], references: [id])
+  unit         unit @relation(fields: [unitId], references: [id])
+  professional user @relation(fields: [professionalId], references: [id])
 
   @@map("profissional_escala")
 }
@@ -72,9 +74,12 @@ model unit {
 
   address      address?      @relation(fields: [addressId], references: [id])
   appointments appointment[]
+  professionalSchedules professional_schedule[]
+  unitSchedules        unit_schedule[]
 
   @@map("unidade")
 }
+
 model unit_schedule {
   id          Int      @id @default(autoincrement())
   unitId      Int      @map("unidade_id")
@@ -84,10 +89,11 @@ model unit_schedule {
   createdAt   DateTime @default(now()) @map("criado_em")
   updatedAt   DateTime @updatedAt @map("atualizado_em")
 
-  unit unidade @relation(fields: [unitId], references: [id])
+  unit unit @relation(fields: [unitId], references: [id])
 
   @@map("unidade_funcionamento")
 }
+
 model diagnosis {
   id            Int      @id @default(autoincrement())
   description   String   @map("descricao")
@@ -135,6 +141,7 @@ model appointment {
 
   @@map("agendamento")
 }
+
 model notification {
   id        Int       @id @default(autoincrement())
   userId    Int       @map("user_id")

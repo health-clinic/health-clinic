@@ -99,6 +99,34 @@ CREATE TABLE "notificacao" (
     CONSTRAINT "notificacao_pkey" PRIMARY KEY ("id")
 );
 
+
+-- CreateTable
+CREATE TABLE "profissional_escala" (
+    "id" SERIAL NOT NULL,
+    "unidade_id" INTEGER NOT NULL,
+    "profissional_id" INTEGER NOT NULL,
+    "dia_semana" INTEGER NOT NULL,
+    "inicio" TIME NOT NULL,
+    "fim" TIME NOT NULL,
+    "criado_em" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizado_em" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "profissional_escala_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "unidade_funcionamento" (
+    "id" SERIAL NOT NULL,
+    "unidade_id" INTEGER NOT NULL,
+    "dia_semana" INTEGER NOT NULL,
+    "inicio" TIME NOT NULL,
+    "fim" TIME NOT NULL,
+    "criado_em" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizado_em" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "unidade_funcionamento_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "usuario_email_key" ON "usuario"("email");
 
@@ -125,3 +153,12 @@ ALTER TABLE "agendamento" ADD CONSTRAINT "agendamento_paciente_id_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "notificacao" ADD CONSTRAINT "notificacao_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "profissional_escala" ADD CONSTRAINT "profissional_escala_unidade_id_fkey" FOREIGN KEY ("unidade_id") REFERENCES "unidade"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "profissional_escala" ADD CONSTRAINT "profissional_escala_profissional_id_fkey" FOREIGN KEY ("profissional_id") REFERENCES "usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "unidade_funcionamento" ADD CONSTRAINT "unidade_funcionamento_unidade_id_fkey" FOREIGN KEY ("unidade_id") REFERENCES "unidade"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
