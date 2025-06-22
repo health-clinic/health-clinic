@@ -18,8 +18,8 @@ model address {
   createdAt DateTime @default(now()) @map("criado_em")
   updatedAt DateTime @updatedAt @map("atualizado_em")
 
-  users user[]
   units unit[]
+  users user[]
 
   @@map("endereco")
 }
@@ -52,8 +52,8 @@ model professional_schedule {
   unitId         Int      @map("unidade_id")
   professionalId Int      @map("profissional_id")
   dayOfWeek      Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
-  start          DateTime @db.Time @map("inicio")
-  end            DateTime @db.Time @map("fim")
+  start          String   @map("inicio")
+  end            String   @map("fim")
   createdAt      DateTime @default(now()) @map("criado_em")
   updatedAt      DateTime @updatedAt @map("atualizado_em")
 
@@ -75,7 +75,7 @@ model unit {
   address      address?      @relation(fields: [addressId], references: [id])
   appointments appointment[]
   professionalSchedules professional_schedule[]
-  unitSchedules        unit_schedule[]
+  unit_schedule        unit_schedule[]
 
   @@map("unidade")
 }
@@ -84,8 +84,8 @@ model unit_schedule {
   id          Int      @id @default(autoincrement())
   unitId      Int      @map("unidade_id")
   dayOfWeek   Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
-  opening     DateTime @db.Time @map("inicio")
-  closing     DateTime @db.Time @map("fim")
+  opening     String   @map("inicio")
+  closing     String   @map("fim")
   createdAt   DateTime @default(now()) @map("criado_em")
   updatedAt   DateTime @updatedAt @map("atualizado_em")
 
