@@ -38,11 +38,11 @@ model user {
   createdAt DateTime  @default(now()) @map("criado_em")
   updatedAt DateTime  @updatedAt @map("atualizado_em")
 
-  address                  address?      @relation(fields: [addressId], references: [id])
-  patientAppointments      appointment[] @relation("PatientAppointments")
-  professionalAppointments appointment[] @relation("ProfessionalAppointments")
-  notifications            notification[] @relation("UserNotifications")
-  professionalSchedules    professional_schedule[]
+  address                  address?                @relation(fields: [addressId], references: [id])
+  patientAppointments      appointment[]           @relation("PatientAppointments")
+  professionalAppointments appointment[]           @relation("ProfessionalAppointments")
+  notifications            notification[]          @relation("UserNotifications")
+  schedules                professional_schedule[]
 
   @@map("usuario")
 }
@@ -52,8 +52,8 @@ model professional_schedule {
   unitId         Int      @map("unidade_id")
   professionalId Int      @map("profissional_id")
   dayOfWeek      Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
-  start          String   @map("inicio")
-  end            String   @map("fim")
+  start          DateTime @map("inicio") @db.Time()
+  end            DateTime @map("fim") @db.Time()
   createdAt      DateTime @default(now()) @map("criado_em")
   updatedAt      DateTime @updatedAt @map("atualizado_em")
 
@@ -68,26 +68,26 @@ model unit {
   addressId Int?     @map("endereco_id")
   name      String   @map("nome")
   phone     String   @map("telefone")
-  distance  String   @map("distancia")
   createdAt DateTime @default(now()) @map("criado_em")
   updatedAt DateTime @updatedAt @map("atualizado_em")
 
-  address      address?      @relation(fields: [addressId], references: [id])
-  appointments appointment[]
+  address               address?                @relation(fields: [addressId], references: [id])
+  appointments          appointment[]
   professionalSchedules professional_schedule[]
-  unit_schedule        unit_schedule[]
+  schedules             unit_schedule[]
 
+  @@unique([name, phone])
   @@map("unidade")
 }
 
 model unit_schedule {
-  id          Int      @id @default(autoincrement())
-  unitId      Int      @map("unidade_id")
-  dayOfWeek   Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
-  opening     String   @map("inicio")
-  closing     String   @map("fim")
-  createdAt   DateTime @default(now()) @map("criado_em")
-  updatedAt   DateTime @updatedAt @map("atualizado_em")
+  id        Int      @id @default(autoincrement())
+  unitId    Int      @map("unidade_id")
+  dayOfWeek Int      @map("dia_semana") // 0 = Domingo, 6 = Sábado
+  opening   DateTime @map("inicio") @db.Time()
+  closing   DateTime @map("fim") @db.Time()
+  createdAt DateTime @default(now()) @map("criado_em")
+  updatedAt DateTime @updatedAt @map("atualizado_em")
 
   unit unit @relation(fields: [unitId], references: [id])
 
@@ -150,7 +150,7 @@ model notification {
   metadata  Json?
   createdAt DateTime  @default(now()) @map("criado_em")
   updatedAt DateTime  @updatedAt @map("atualizado_em")
-  readAt    DateTime? @map("lido_em") 
+  readAt    DateTime? @map("lido_em")
 
   user user @relation("UserNotifications", fields: [userId], references: [id])
 

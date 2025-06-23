@@ -10,11 +10,15 @@ router.get('/patients', async (request: Request, response: Response): Promise<vo
       where: {
         role: 'patient',
       },
+      include: {
+        address: true,
+      },
     });
 
     response.json(patients.map((patient) => omit(patient, ['password'])));
   } catch (error) {
     console.error(error);
+
     response.status(500).json({
       error: 'Não foi possível buscar os pacientes. Por favor, tente mais tarde.',
     });

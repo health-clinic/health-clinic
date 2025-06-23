@@ -19,6 +19,7 @@ router.get('/professionals', async (request: Request, response: Response): Promi
     response.json(professionals.map((professional) => omit(professional, ['password'])));
   } catch (error) {
     console.error(error);
+
     response.status(500).json({
       error: 'Não foi possível buscar os profissionais. Por favor, tente mais tarde.',
     });
