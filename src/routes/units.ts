@@ -1,18 +1,42 @@
 import express, { Request, Response } from 'express';
-import { omit } from 'lodash';
+import { format, parse } from 'date-fns';
 import { prisma } from '../prisma/client';
 
 const router = express.Router();
+
+const parseTimeString = (timeString: string): Date => {
+  return parse(timeString, 'HH:mm', new Date());
+};
+
+const formatTimeToString = (date: Date): string => {
+  return format(date, 'HH:mm');
+};
 
 router.get('/units', async (request: Request, response: Response): Promise<void> => {
   try {
     const units = await prisma.unit.findMany({
       include: {
         address: true,
+        schedules: true,
+        professionalSchedules: true,
       },
     });
 
-    response.json(units);
+    response.json(
+      units.map((unit) => ({
+        ...unit,
+        schedules: unit.schedules?.map((schedule) => ({
+          ...schedule,
+          opening: formatTimeToString(schedule.opening),
+          closing: formatTimeToString(schedule.closing),
+        })),
+        professionalSchedules: unit.professionalSchedules?.map((schedule) => ({
+          ...schedule,
+          start: formatTimeToString(schedule.start),
+          end: formatTimeToString(schedule.end),
+        })),
+      })),
+    );
   } catch (error) {
     console.error(error);
 
@@ -30,9 +54,10 @@ router.get('/units/:id', async (request: Request, response: Response): Promise<v
       where: { id: Number(id) },
       include: {
         address: true,
+        schedules: true,
+        professionalSchedules: true,
       },
     });
-
     if (!unit) {
       response.status(404).json({
         error: 'Unidade de saúde não encontrada. Verifique se o ID informado está correto.',
@@ -41,7 +66,19 @@ router.get('/units/:id', async (request: Request, response: Response): Promise<v
       return;
     }
 
-    response.json(unit);
+    response.json({
+      ...unit,
+      schedules: unit.schedules?.map((schedule) => ({
+        ...schedule,
+        opening: formatTimeToString(schedule.opening),
+        closing: formatTimeToString(schedule.closing),
+      })),
+      professionalSchedules: unit.professionalSchedules?.map((schedule) => ({
+        ...schedule,
+        start: formatTimeToString(schedule.start),
+        end: formatTimeToString(schedule.end),
+      })),
+    });
   } catch (error) {
     console.error(error);
 
@@ -54,7 +91,27 @@ router.get('/units/:id', async (request: Request, response: Response): Promise<v
 
 router.post('/units', async (request: Request, response: Response): Promise<void> => {
   try {
-    const { name, phone, distance, address } = request.body;
+    const {
+      name,
+      phone,
+      address,
+      schedules,
+      professional_schedules: professionalSchedules,
+    } = request.body;
+
+    const existingUnit = await prisma.unit.findFirst({
+      where: {
+        AND: [{ name }, { phone }],
+      },
+    });
+    if (existingUnit) {
+      response.status(409).json({
+        error:
+          'Já existe uma unidade de saúde com o mesmo nome e telefone. Por favor, tente novamente com outras informações.',
+      });
+
+      return;
+    }
 
     const createdUnit = await prisma.$transaction(async (tx) => {
       let storedAddress = await tx.address.findFirst({
@@ -75,20 +132,60 @@ router.post('/units', async (request: Request, response: Response): Promise<void
         });
       }
 
-      return tx.unit.create({
+      const unit = await tx.unit.create({
         data: {
           name,
           phone,
           addressId: storedAddress.id,
-          distance,
         },
+      });
+
+      if (schedules && schedules.length > 0) {
+        await tx.unit_schedule.createMany({
+          data: schedules.map((schedule) => ({
+            unitId: unit.id,
+            dayOfWeek: schedule.day_of_week,
+            opening: parseTimeString(schedule.opening),
+            closing: parseTimeString(schedule.closing),
+          })),
+        });
+      }
+
+      if (professionalSchedules && professionalSchedules.length > 0) {
+        await tx.professional_schedule.createMany({
+          data: professionalSchedules.map((schedule) => ({
+            professionalId: schedule.professional_id,
+            unitId: unit.id,
+            dayOfWeek: schedule.day_of_week,
+            start: parseTimeString(schedule.start),
+            end: parseTimeString(schedule.end),
+          })),
+        });
+      }
+
+      return tx.unit.findUnique({
+        where: { id: unit.id },
         include: {
           address: true,
+          schedules: true,
+          professionalSchedules: true,
         },
       });
     });
 
-    response.status(201).json(createdUnit);
+    response.status(201).json({
+      ...createdUnit,
+      schedules: createdUnit?.schedules?.map((schedule) => ({
+        ...schedule,
+        opening: formatTimeToString(schedule.opening),
+        closing: formatTimeToString(schedule.closing),
+      })),
+      professionalSchedules: createdUnit?.professionalSchedules?.map((schedule) => ({
+        ...schedule,
+        start: formatTimeToString(schedule.start),
+        end: formatTimeToString(schedule.end),
+      })),
+    });
   } catch (error) {
     console.error(error);
 
@@ -102,7 +199,13 @@ router.post('/units', async (request: Request, response: Response): Promise<void
 router.put('/units/:id', async (request: Request, response: Response): Promise<void> => {
   try {
     const { id } = request.params;
-    const { name, address_id: addressId, distance } = request.body;
+    const {
+      name,
+      phone,
+      address,
+      schedules,
+      professional_schedules: professionalSchedules,
+    } = request.body;
 
     const existingUnit = await prisma.unit.findUnique({
       where: { id: Number(id) },
@@ -115,19 +218,94 @@ router.put('/units/:id', async (request: Request, response: Response): Promise<v
       return;
     }
 
-    const updatedUnit = await prisma.unit.update({
-      where: { id: Number(id) },
-      data: {
-        name,
-        addressId: addressId ? Number(addressId) : undefined,
-        distance,
-      },
-      include: {
-        address: true,
-      },
+    const updatedUnit = await prisma.$transaction(async (tx) => {
+      let { addressId } = existingUnit;
+
+      if (address) {
+        let storedAddress = await tx.address.findFirst({
+          where: {
+            zipCode: address.zip_code,
+          },
+        });
+        if (!storedAddress) {
+          storedAddress = await tx.address.create({
+            data: {
+              zipCode: address.zip_code,
+              state: address.state,
+              city: address.city,
+              district: address.district,
+              street: address.street,
+              number: address.number,
+            },
+          });
+        }
+
+        addressId = storedAddress.id;
+      }
+
+      if (schedules && schedules.length > 0) {
+        await tx.unit_schedule.deleteMany({
+          where: { unitId: Number(id) },
+        });
+
+        await tx.unit_schedule.createMany({
+          data: schedules.map((schedule) => ({
+            unitId: Number(id),
+            dayOfWeek: schedule.day_of_week,
+            opening: parseTimeString(schedule.opening),
+            closing: parseTimeString(schedule.closing),
+          })),
+        });
+      }
+
+      if (professionalSchedules && professionalSchedules.length > 0) {
+        await tx.professional_schedule.deleteMany({
+          where: { unitId: Number(id) },
+        });
+
+        await tx.professional_schedule.createMany({
+          data: professionalSchedules.map((schedule) => ({
+            professionalId: schedule.professional_id,
+            unitId: Number(id),
+            dayOfWeek: schedule.day_of_week,
+            start: parseTimeString(schedule.start),
+            end: parseTimeString(schedule.end),
+          })),
+        });
+      }
+
+      await tx.unit.update({
+        where: { id: Number(id) },
+        data: {
+          addressId,
+          name,
+          phone,
+        },
+      });
+
+      return tx.unit.findUnique({
+        where: { id: Number(id) },
+        include: {
+          address: true,
+          schedules: true,
+          professionalSchedules: true,
+        },
+      });
     });
 
-    response.json(updatedUnit);
+    response.json({
+      ...updatedUnit,
+      schedules: updatedUnit?.schedules?.map((schedule) => ({
+        ...schedule,
+        opening: formatTimeToString(schedule.opening),
+        closing: formatTimeToString(schedule.closing),
+      })),
+      professionalSchedules: updatedUnit?.professionalSchedules?.map((schedule) => ({
+        ...schedule,
+        start: formatTimeToString(schedule.start),
+        end: formatTimeToString(schedule.end),
+      })),
+    });
   } catch (error) {
     console.error(error);
 
