@@ -1,9 +1,13 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
-import { subDays } from 'date-fns';
+import { subDays, format, parse } from 'date-fns';
 import { prisma } from '../prisma/client';
 
 const router = express.Router();
+
+const formatTimeToString = (date: Date): string => {
+  return format(date, 'HH:mm');
+};
 
 router.get('/professionals', async (request: Request, response: Response): Promise<void> => {
   try {
@@ -14,9 +18,38 @@ router.get('/professionals', async (request: Request, response: Response): Promi
         role: 'professional',
         ...(specialty ? { specialty: specialty as string } : {}),
       },
+      include: {
+        schedules: {
+          include: {
+            unit: {
+              include: {
+                address: true,
+                schedules: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    response.json(professionals.map((professional) => omit(professional, ['password'])));
+    response.json(
+      professionals.map((professional) => ({
+        ...omit(professional, ['password']),
+        schedules: professional.schedules?.map((schedule) => ({
+          ...schedule,
+          start: formatTimeToString(schedule.start),
+          end: formatTimeToString(schedule.end),
+          unit: {
+            ...schedule.unit,
+            schedules: schedule.unit?.schedules?.map((unitSchedule) => ({
+              ...unitSchedule,
+              opening: formatTimeToString(unitSchedule.opening),
+              closing: formatTimeToString(unitSchedule.closing),
+            })),
+          },
+        })),
+      })),
+    );
   } catch (error) {
     console.error(error);
 
@@ -39,12 +72,12 @@ router.get(
           role: 'professional',
         },
       });
+
       if (!professional) {
         response.status(404).json({
           error:
             'Não encontramos um profissional com o ID informado, verifique se o mesmo está correto.',
         });
-
         return;
       }
 
@@ -70,12 +103,10 @@ router.get(
       });
 
       response.json(
-        appointments.map((appointment) => {
-          return {
-            ...omit(appointment.patient, ['password']),
-            lastVisit: appointment.scheduledFor,
-          };
-        }),
+        appointments.map((appointment) => ({
+          ...omit(appointment.patient, ['password']),
+          lastVisit: appointment.scheduledFor,
+        })),
       );
     } catch (error) {
       console.error(error);
