@@ -5,6 +5,7 @@ import { omit } from 'lodash';
 import MailtrapMailProvider from '../helpers/MailtrapMailProvider';
 import { prisma } from '../prisma/client';
 import { redis } from '../configs/valkey/client';
+import { NotificationService } from '../services/notificationService';
 
 const router = express.Router();
 
@@ -57,6 +58,33 @@ router.post('/register', async (request: Request, response: Response): Promise<v
 
     const token = jwt.sign({ email: createdUser.email }, process.env.JWT_SECRET!, {
       expiresIn: '30d',
+    });
+
+    if (createdUser.role === 'patient' || createdUser.role === 'professional') {
+      const administrators = await NotificationService.getAdministrators();
+      if (administrators.length > 0) {
+        const userType = createdUser.role === 'patient' ? 'paciente' : 'profissional';
+
+        await NotificationService.createNotifications(administrators, {
+          title: `Novo ${userType}`,
+          content: `${createdUser.role === 'patient' ? 'Paciente' : 'Profissional'} "${createdUser.name}" foi cadastrado.`,
+          metadata: {
+            id: createdUser.id,
+            name: createdUser.name,
+            role: createdUser.role,
+          },
+        });
+      }
+    }
+
+    await NotificationService.createNotification(createdUser.id, {
+      title: 'Bem-vindo!',
+      content: `Olá ${createdUser.name}! Seu cadastro foi realizado com sucesso.`,
+      metadata: {
+        id: createdUser.id,
+        name: createdUser.name,
+        is_welcome: true,
+      },
     });
 
     response.status(201).json({ token, user: omit(createdUser, ['password']) });

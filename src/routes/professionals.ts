@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
-import { subDays, format, parse } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { prisma } from '../prisma/client';
 
 const router = express.Router();

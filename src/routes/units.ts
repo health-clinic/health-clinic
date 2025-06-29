@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { format, parse } from 'date-fns';
 import { prisma } from '../prisma/client';
+import { NotificationService } from '../services/notificationService';
 
 const router = express.Router();
 
@@ -173,6 +174,20 @@ router.post('/units', async (request: Request, response: Response): Promise<void
       });
     });
 
+    if (createdUnit) {
+      const administrators = await NotificationService.getAdministrators();
+      if (administrators.length > 0) {
+        await NotificationService.createNotifications(administrators, {
+          title: 'Nova unidade',
+          content: `A unidade "${createdUnit.name}" foi criada.`,
+          metadata: {
+            id: createdUnit.id,
+            name: createdUnit.name,
+          },
+        });
+      }
+    }
+
     response.status(201).json({
       ...createdUnit,
       schedules: createdUnit?.schedules?.map((schedule) => ({
@@ -293,6 +308,20 @@ router.put('/units/:id', async (request: Request, response: Response): Promise<v
       });
     });
 
+    if (updatedUnit) {
+      const administrators = await NotificationService.getAdministrators();
+      if (administrators.length > 0) {
+        await NotificationService.createNotifications(administrators, {
+          title: 'Unidade atualizada',
+          content: `A unidade "${updatedUnit.name}" foi atualizada.`,
+          metadata: {
+            id: updatedUnit.id,
+            name: updatedUnit.name,
+          },
+        });
+      }
+    }
+
     response.json({
       ...updatedUnit,
       schedules: updatedUnit?.schedules?.map((schedule) => ({
@@ -328,6 +357,18 @@ router.delete('/units/:id', async (request: Request, response: Response): Promis
       });
 
       return;
+    }
+
+    const administrators = await NotificationService.getAdministrators();
+    if (administrators.length > 0) {
+      await NotificationService.createNotifications(administrators, {
+        title: 'Unidade removida',
+        content: `A unidade "${existingUnit.name}" foi removida.`,
+        metadata: {
+          id: existingUnit.id,
+          name: existingUnit.name,
+        },
+      });
     }
 
     await prisma.unit.delete({
