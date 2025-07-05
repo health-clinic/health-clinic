@@ -1,9 +1,8 @@
 import * as awsx from "@pulumi/awsx";
 import { TAGS } from "../shared/constants";
 
-export const vpc = new awsx.ec2.Vpc("clinic-vpc", {
+export const vpc = new awsx.ec2.Vpc("health-clinic-vpc", {
   numberOfAvailabilityZones: 2,
-  subnets: [{ type: "private" }],
   tags: TAGS,
 });
 
