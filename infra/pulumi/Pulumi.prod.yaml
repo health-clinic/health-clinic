@@ -1,0 +1,12 @@
+config:
+  aws:region: us-east-1
+  dbUsername: postgres
+  dbPassword:
+    secure: 74L87X7XeKPUAorI32nn
+  jwtSecret:
+    secure: bR5Yy07W]mAxU
+  mailtrapUser: mail_user
+  mailtrapPass:
+    secure: mail_pass
+  valkeyPassword:
+    secure: |r/E#ES8|$7Jy
