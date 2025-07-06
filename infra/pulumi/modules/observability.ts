@@ -11,8 +11,8 @@ new aws.cloudwatch.MetricAlarm('health-clinic-cpu-alarm', {
   statistic: 'Average',
   threshold: 80,
   dimensions: {
-    ClusterName: cluster.cluster.name,
-    ServiceName: service.name,
+    ClusterName: cluster.name,
+    ServiceName: service.service.name,
   },
   alarmDescription: 'High CPU usage in ECS Fargate app',
   treatMissingData: 'notBreaching',

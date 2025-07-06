@@ -1,3 +1,3 @@
-import * as awsx from '@pulumi/awsx/classic';
+import * as aws from '@pulumi/aws';
 
-export const cluster = new awsx.ecs.Cluster('health-clinic-cluster');
+export const cluster = new aws.ecs.Cluster('health-clinic-cluster', {});

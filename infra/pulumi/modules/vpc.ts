@@ -14,4 +14,3 @@ export const vpc = new awsx.ec2.Vpc('health-clinic-vpc', {
 
 export const vpcId = vpc.vpcId;
 export const privateSubnetIds = vpc.privateSubnetIds;
-export const publicSubnetIds = vpc.publicSubnetIds;
