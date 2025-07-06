@@ -2,11 +2,11 @@ config:
   aws:region: us-east-1
   health-clinic:dbUsername: postgres
   health-clinic:dbPassword:
-    secure: 74L87X7XeKPUAorI32nn
+    secure: AAABAIabC6Ut7jbeC7Mf8Fw21arEYcJzDNkBYYeeg4aqqhOyJZ3h/czZFbc2RQkxySOtZw==
   health-clinic:jwtSecret:
-    secure: bR5Yy07W]mAxU
+    secure: AAABADfQ2d/WZq0+S84uHV4hWPf3iTeP8f0EqLs+UlcK+Og4efGKbos/kKGJ
   health-clinic:mailtrapUser: mail_user
   health-clinic:mailtrapPass:
-    secure: mail_pass
+    secure: AAABADSM+7p0ybQJcZUU1IiXoRnApNklORV52bHb5+JHrtfpgPzIT9U=
   health-clinic:valkeyPassword:
-    secure: "|r/E#ES8|$7Jy"
+    secure: "AAABANXBbmZ5l+FuErPIB4fTQ4x+A5E1lc8ui9ZnESEeU0AvsnTSFuAg/Q=="
