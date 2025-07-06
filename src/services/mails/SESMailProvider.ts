@@ -40,7 +40,7 @@ class SESMailProvider {
 
     const message = await this.client.sendMail({
       to,
-      from: 'Postinho de Saúde <no-reply@healthclinic.com.br>',
+      from: 'Postinho de Saúde <williamtrev+no-reply.health-clininc@hotmail.com>',
       subject,
       text,
     });
