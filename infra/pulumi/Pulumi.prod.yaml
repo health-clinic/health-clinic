@@ -1,12 +1,12 @@
 config:
-  aws:region: us-east-1
-  dbUsername: postgres
-  dbPassword:
+  health-clinic:aws:region: us-east-1
+  health-clinic:dbUsername: postgres
+  health-clinic:dbPassword:
     secure: 74L87X7XeKPUAorI32nn
-  jwtSecret:
+  health-clinic:jwtSecret:
     secure: bR5Yy07W]mAxU
-  mailtrapUser: mail_user
-  mailtrapPass:
+  health-clinic:mailtrapUser: mail_user
+  health-clinic:mailtrapPass:
     secure: mail_pass
-  valkeyPassword:
+  health-clinic:valkeyPassword:
     secure: |r/E#ES8|$7Jy

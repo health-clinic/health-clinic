@@ -8,5 +8,3 @@ export const jwtSecret = config.requireSecret("jwtSecret");
 export const mailtrapUser = config.require("mailtrapUser");
 export const mailtrapPass = config.requireSecret("mailtrapPass");
 export const valkeyPassword = config.requireSecret("valkeyPassword");
-export const vpcId = config.require("vpcId");
-export const subnetIds = config.requireObject<string[]>("privateSubnets");

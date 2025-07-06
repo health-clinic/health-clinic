@@ -21,7 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./infra/pulumi
 
       - name: Pulumi CLI
         uses: pulumi/actions@v4

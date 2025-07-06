@@ -9,6 +9,11 @@
     "strict": true,
     "noImplicitAny": false
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "infra/pulumi/**/*.ts",
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
