@@ -18,7 +18,7 @@ const securityGroup = new aws.ec2.SecurityGroup('health-clinic-database-security
 
 export const database = new aws.rds.Instance('health-clinic-database', {
   engine: 'postgres',
-  engineVersion: '15.5',
+  engineVersion: '17.5',
   instanceClass: 'db.t3.micro',
   allocatedStorage: 20,
   dbName: name,
