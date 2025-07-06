@@ -1,5 +1,6 @@
 import * as aws from '@pulumi/aws';
 import * as awsx from '@pulumi/awsx/classic';
+import * as pulumi from '@pulumi/pulumi';
 import { cluster } from './cluster';
 import { image } from './ecr';
 import { jwtSecret, mailtrapPass, mailtrapUser, valkeyPassword } from '../shared/config';
@@ -52,7 +53,7 @@ export const service = new awsx.ecs.FargateService('health-clinic-service', {
         logConfiguration: {
           logDriver: 'awslogs',
           options: {
-            'awslogs-group': logGroup.name,
+            'awslogs-group': logGroup.name.apply((name: string): string => name),
             'awslogs-region': 'us-east-1',
             'awslogs-stream-prefix': 'ecs',
           },
@@ -67,7 +68,7 @@ export const service = new awsx.ecs.FargateService('health-clinic-service', {
         logConfiguration: {
           logDriver: 'awslogs',
           options: {
-            'awslogs-group': logGroup.name,
+            'awslogs-group': logGroup.name.apply((name: string): string => name),
             'awslogs-region': 'us-east-1',
             'awslogs-stream-prefix': 'ecs',
           },
