@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { format, parse } from 'date-fns';
 import { prisma } from '../prisma/client';
-import { NotificationService } from '../services/notificationService';
+import { NotificationService } from '../services/notifications/notificationService';
 
 const router = express.Router();
 

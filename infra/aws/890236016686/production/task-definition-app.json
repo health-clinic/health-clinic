@@ -4,12 +4,12 @@
   "memory": "1024",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "executionRoleArn": "arn:aws:iam::890236016686:role/ecs-taskexecutionrole-health-clinic-prod",
-  "taskRoleArn": "arn:aws:iam::890236016686:role/ecs-taskrole-health-clinic-prod",
+  "executionRoleArn": "arn:aws:iam::890236016686:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::890236016686:role/ecsTaskRole",
   "containerDefinitions": [
     {
       "name": "app",
-      "image": "890236016686.dkr.ecr.us-east-1.amazonaws.com/health-clinic-app:0.0.2",
+      "image": "890236016686.dkr.ecr.us-east-1.amazonaws.com/health-clinic-api:ngrok",
       "portMappings": [
         {
           "containerPort": 3001,
@@ -19,10 +19,8 @@
       "environment": [
         { "name": "NODE_ENV", "value": "production" },
         { "name": "APP_PORT", "value": "3001" },
-        { "name": "MAILTRAP_HOST", "value": "smtp.mailtrap.io" },
-        { "name": "MAILTRAP_PORT", "value": "2525" },
-        { "name": "MAILTRAP_USER", "value": "your_prod_user" },
-        { "name": "MAILTRAP_PASS", "value": "your_prod_pass" },
+        { "name": "SMTP_HOST", "value": "email-smtp.us-east-1.amazonaws.com" },
+        { "name": "SMTP_PORT", "value": "587" },
         { "name": "JWT_SECRET", "value": "bR5Yy07W]mAxU" },
         { "name": "VALKEY_HOST", "value": "localhost" },
         { "name": "VALKEY_PORT", "value": "6379" },
@@ -32,6 +30,14 @@
         {
           "name": "DATABASE_URL",
           "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-prod/DATABASE_URL"
+        },
+        {
+          "name": "SMTP_USER",
+          "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-prod/SMTP_USER"
+        },
+        {
+          "name": "SMTP_PASS",
+          "valueFrom": "arn:aws:ssm:us-east-1:890236016686:parameter/ECS/TaskDefinition/health-clinic-app-prod/SMTP_PASS"
         }
       ],
       "logConfiguration": {

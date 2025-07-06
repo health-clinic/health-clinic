@@ -10,13 +10,13 @@ class MailtrapMailProvider {
   private async createClient() {
     try {
       const account = {
-        pass: process.env.MAILTRAP_PASS,
+        pass: process.env.SMTP_PASS,
         smtp: {
-          host: process.env.MAILTRAP_HOST,
-          port: parseInt(process.env.MAILTRAP_PORT || '2525', 10),
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '2525', 10),
           secure: false,
         },
-        user: process.env.MAILTRAP_USER,
+        user: process.env.SMTP_USER,
       };
 
       this.client = nodemailer.createTransport({

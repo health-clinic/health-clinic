@@ -1,4 +1,4 @@
-import { prisma } from '../prisma/client';
+import { prisma } from '../../prisma/client';
 
 export interface NotificationData {
   title: string;
@@ -18,7 +18,7 @@ export class NotificationService {
         },
       });
     } catch (error) {
-      console.error('Failed to create notification:', error);
+      console.error('Failed to create notifications:', error);
     }
   }
 

@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { omit } from 'lodash';
 import { endOfDay, format, startOfDay } from 'date-fns';
 import { prisma } from '../prisma/client';
-import { NotificationService } from '../services/notificationService';
+import { NotificationService } from '../services/notifications/notificationService';
 
 const router = express.Router();
 

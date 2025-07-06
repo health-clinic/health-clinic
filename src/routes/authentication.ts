@@ -2,10 +2,10 @@ import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
-import MailtrapMailProvider from '../helpers/MailtrapMailProvider';
+import SESMailProvider from '../services/mails/MailtrapMailProvider';
 import { prisma } from '../prisma/client';
 import { redis } from '../configs/valkey/client';
-import { NotificationService } from '../services/notificationService';
+import { NotificationService } from '../services/notifications/notificationService';
 
 const router = express.Router();
 
@@ -149,7 +149,7 @@ router.post('/forgot-password', async (request: Request, response: Response): Pr
 
     await redis.set(`recovery:${email}`, recoveryCode, 'EX', 300);
 
-    await new MailtrapMailProvider().sendMail(
+    await new SESMailProvider().sendMail(
       email,
       'Recuperação de Senha',
       `Seu código de recuperação é: ${recoveryCode}`,
