@@ -1,6 +1,6 @@
 import nodemailer, { Transporter } from 'nodemailer';
 
-class MailtrapMailProvider {
+class SESMailProvider {
   private client!: Transporter;
 
   constructor() {
@@ -13,7 +13,7 @@ class MailtrapMailProvider {
         pass: process.env.SMTP_PASS,
         smtp: {
           host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT || '2525', 10),
+          port: parseInt(process.env.SMTP_PORT || '587', 10),
           secure: false,
         },
         user: process.env.SMTP_USER,
@@ -37,11 +37,10 @@ class MailtrapMailProvider {
     if (!this.client) {
       await this.createClient();
     }
-    console.log(this.client);
 
     const message = await this.client.sendMail({
       to,
-      from: 'Postinho de Saúde <no-replay@healthclinic.com.br>',
+      from: 'Postinho de Saúde <no-reply@healthclinic.com.br>',
       subject,
       text,
     });
@@ -50,4 +49,4 @@ class MailtrapMailProvider {
   }
 }
 
-export default MailtrapMailProvider;
+export default SESMailProvider;
