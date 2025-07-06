@@ -9,4 +9,4 @@ config:
   health-clinic:mailtrapPass:
     secure: mail_pass
   health-clinic:valkeyPassword:
-    secure: |r/E#ES8|$7Jy
+    secure: "|r/E#ES8|$7Jy"
