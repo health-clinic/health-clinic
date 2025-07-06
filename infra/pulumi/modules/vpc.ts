@@ -6,6 +6,9 @@ export const vpc = new awsx.ec2.Vpc("health-clinic-vpc", {
   cidrBlock: "10.0.0.0/16",
   enableDnsSupport: true,
   enableDnsHostnames: true,
+  natGateways: {
+    strategy: "None",
+  },
   tags: TAGS,
 });
 

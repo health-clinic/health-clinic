@@ -1,3 +1,6 @@
 name: health-clinic
 main: index.ts
 runtime: nodejs
+options:
+  typescript:
+    configPath: tsconfig.json
