@@ -10,7 +10,8 @@ const authorization = aws.ecr.getAuthorizationTokenOutput({
 });
 
 export const image = new docker.Image('health-clinic-image', {
-  context: { location: './../../../' },
+  context: { location: './../../' },
+  dockerfile: { location: './../../Dockerfile' },
   platforms: ['linux/amd64'],
   push: true,
   registries: [

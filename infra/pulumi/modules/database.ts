@@ -1,13 +1,13 @@
 import * as aws from '@pulumi/aws';
 import * as pulumi from '@pulumi/pulumi';
 import { databasePassword as password, databaseUsername as username } from '../shared/config';
-import { subnetIds, vpcId } from './vpc';
+import { privateSubnetIds, vpcId } from './vpc';
 import { TAGS } from '../shared/constants';
 
 const name = 'health_clinic';
 
 const subnetGroup = new aws.rds.SubnetGroup('health-clinic-database-subnet-group', {
-  subnetIds,
+  subnetIds: privateSubnetIds,
 });
 
 const securityGroup = new aws.ec2.SecurityGroup('health-clinic-database-security-group', {

@@ -3,6 +3,7 @@ import * as awsx from '@pulumi/awsx/classic';
 import { cluster } from './cluster';
 import { image } from './ecr';
 import { jwtSecret, mailtrapPass, mailtrapUser, valkeyPassword } from '../shared/config';
+import { publicSubnetIds, vpcId } from './vpc';
 import { APP_PORT, CPU, MEMORY, REDIS_PORT, TAGS } from '../shared/constants';
 
 export const logGroup = new aws.cloudwatch.LogGroup('health-clinic-app-log-group', {
@@ -11,10 +12,21 @@ export const logGroup = new aws.cloudwatch.LogGroup('health-clinic-app-log-group
   tags: TAGS,
 });
 
+const serviceSecurityGroup = new aws.ec2.SecurityGroup('health-clinic-service-security-group', {
+  vpcId,
+  ingress: [
+    { protocol: 'tcp', fromPort: APP_PORT, toPort: APP_PORT, cidrBlocks: ['0.0.0.0/0'] },
+  ],
+  egress: [{ protocol: '-1', fromPort: 0, toPort: 0, cidrBlocks: ['0.0.0.0/0'] }],
+  tags: TAGS,
+});
+
 export const service = new awsx.ecs.FargateService('health-clinic-service', {
   cluster,
   desiredCount: 1,
   assignPublicIp: true,
+  subnets: publicSubnetIds,
+  securityGroups: [serviceSecurityGroup.id],
   taskDefinitionArgs: {
     containers: {
       app: {
