@@ -18,6 +18,7 @@ class SESMailProvider {
         },
         user: process.env.SMTP_USER,
       };
+      console.log(account);
 
       this.client = nodemailer.createTransport({
         host: account.smtp.host,
@@ -40,7 +41,7 @@ class SESMailProvider {
 
     const message = await this.client.sendMail({
       to,
-      from: 'Postinho de Saúde <williamtrev+no-reply.health-clininc@hotmail.com>',
+      from: 'Postinho de Saúde <williamtrev+no-reply.health-clinic@hotmail.com>',
       subject,
       text,
     });

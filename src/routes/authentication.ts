@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
-import SESMailProvider from '../services/mails/MailtrapMailProvider';
+import SESMailProvider from '../services/mails/SESMailProvider';
 import { prisma } from '../prisma/client';
 import { redis } from '../configs/valkey/client';
 import { NotificationService } from '../services/notifications/notificationService';
